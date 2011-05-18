@@ -95,11 +95,19 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
       }
       return imageInfo;
    }
+   
+   public ImageInfo convert(File origImage, File newImage, int newWidth, ImageOperation imageOperation) 
+      throws TimeoutException, FileNotFoundException, IOException {
+      
+      if (imageOperation.equals(ImageOperation.SCALE))
+         return scale(origImage, newImage, newWidth);
+      else
+         return crop(origImage, newImage, newWidth, imageOperation);
+   }
 
-   /* (non-Javadoc)
-    * @see nz.co.telecom.mobile.wap.mdl.api.ImageConverter#scale(java.io.File, java.io.File, int)
-    */
-   public ImageInfo scale(File origImage, File newImage, int newWidth)
+
+
+   private ImageInfo scale(File origImage, File newImage, int newWidth)
          throws TimeoutException, FileNotFoundException, IOException, IllegalArgumentException {
 
       ImageInfo origImageInfo = getImageInfo(origImage);
@@ -110,7 +118,7 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
       commandList.add("convert");
 
       // svg scales better with density param
-      if (ImageConverter.SVG.equals(origImageInfo.getType())) {
+      if (ImageType.SVG.equals(origImageInfo.getType())) {
          newWidth = getDensity(newWidth, origImageInfo);
          commandList.add("-density");
          commandList.add(String.valueOf(newWidth));
@@ -143,14 +151,11 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
    }
 
 
-   /* (non-Javadoc)
-    * @see nz.co.telecom.mobile.wap.mdl.api.ImageConverter#crop(java.io.File, java.io.File, int, java.lang.String)
-    */
-   public ImageInfo crop(File origImage, File newImage, int newWidth, String cropSide) 
+   private ImageInfo crop(File origImage, File newImage, int newWidth, ImageOperation imageOperation) 
    		throws TimeoutException, FileNotFoundException, IOException, IllegalArgumentException {
 
       ImageInfo origImageInfo = getImageInfo(origImage);
-      checkArguments(origImage, newImage, newWidth, cropSide);
+      checkArguments(origImage, newImage, newWidth);
       createDirIfNeeded(newImage);
       
       int crop = getCrop(origImageInfo, newWidth);
@@ -160,13 +165,13 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
       commandList.add("convert");
       commandList.add(origImage.getAbsolutePath());
       
-      if (ImageConverter.CROP_LEFT.equals(cropSide)) {
+      if (imageOperation.equals(ImageOperation.CROP_LEFT)) {
          commandList.add("-chop");
          commandList.add(crop + "x0");
-      } else if (ImageConverter.CROP_CENTER.equals(cropSide)) {
+      } else if (imageOperation.equals(ImageOperation.CROP_CENTER)) {
          commandList.add("-shave");
          commandList.add(String.valueOf(crop / 2) + "x0");
-      } else if (ImageConverter.CROP_RIGHT.equals(cropSide)) {
+      } else if (imageOperation.equals(ImageOperation.CROP_RIGHT)) {
          commandList.add("-gravity");
          commandList.add("East");
          commandList.add("-chop");
@@ -212,34 +217,6 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
                "invalid newImage, path must not be empty");
    }
    
-   private static void checkArguments(File origImage, File newImage,
-         int newWidth, String cropSide) throws IllegalArgumentException, FileNotFoundException {
-      if (newWidth < 1)
-         throw new IllegalArgumentException(
-               "invalid newWidth, must be positive");
-
-      if (!origImage.canRead())
-         throw new FileNotFoundException(
-               "invalid origImage, file could not be read");
-
-      if (StringUtils.isEmpty(newImage.getAbsolutePath()))
-         throw new IllegalArgumentException(
-               "invalid newImage, path must not be empty");
-      
-      if (cropSide != null) {
-         if (!ImageConverter.CROP_LEFT.equals(cropSide) && ! ImageConverter.CROP_CENTER.equals(cropSide) && !ImageConverter.CROP_RIGHT.equals(cropSide))
-                throw new IllegalArgumentException(
-                      "The crop command can only be called with: "
-                            + ImageConverter.CROP_RIGHT + " or "
-                            + ImageConverter.CROP_CENTER + " or "
-                            + ImageConverter.CROP_LEFT);
-      } else 
-         throw new IllegalArgumentException(
-               "The crop command can only be called with: "
-                     + ImageConverter.CROP_RIGHT + " or "
-                     + ImageConverter.CROP_CENTER + " or "
-                     + ImageConverter.CROP_LEFT);
-   }
    
    /**
     * <p>

@@ -2,6 +2,8 @@ package nz.net.catalyst.icons;
 
 import java.io.Serializable;
 
+import nz.net.catalyst.icons.ImageConverter.ImageType;
+
 /**
  * a bean that holds image information, this passed around the ImageConverter.
  * This is normally just the return type.  
@@ -14,14 +16,18 @@ public class ImageInfo implements Serializable {
 
    private static final long serialVersionUID = 1L;
    private final String path;
-   private final String type;
+   private final ImageType type;
    private final int width;
    private final int height;
    private final long lastModified;
    
    public ImageInfo(String path, String type, int width, int height, long lastModified) {
+      this(path, ImageType.getImageType(type), width, height, lastModified);
+   }
+   
+   public ImageInfo(String path, ImageType type, int width, int height, long lastModified) {
       this.path = path;
-      this.type = type.toUpperCase();
+      this.type = type;
       this.width = width;
       this.height = height;
       this.lastModified = lastModified;
@@ -31,7 +37,7 @@ public class ImageInfo implements Serializable {
       return path;
    }
    
-   public String getType() {
+   public ImageType getType() {
       return type;
    }
 

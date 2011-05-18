@@ -10,28 +10,30 @@ import java.util.concurrent.TimeoutException;
  */
 public interface ImageConverter {
    
-   public static final String SVG = "SVG";
-   public static final String PNG = "PNG";
-   public static final String CROP_LEFT = "left";
-   public static final String CROP_CENTER = "center";
-   public static final String CROP_RIGHT = "right";
-
-   /**
-    * Scale an image
-    * <p>
-    * The new image will retain it's original ratio
-    * </p>
-    * @param origImage original File
-    * @param newImage File to save transformed image to
-    * @param newWidth the width the new image should have
-    * @return ImageInfo
-    * @throws TimeoutException
-    * @throws FileNotFoundException
-    * @throws IOException
-    */
-   public ImageInfo scale(File origImage, File newImage, int newWidth) 
-      throws TimeoutException, FileNotFoundException, IOException;
-
+   public enum ImageType {
+      SVG("SVG"), PNG("PNG"), JPEG("JPEG");
+      
+      private String type;
+      
+      private ImageType(String type) {
+         this.type = type;
+      }
+      
+      public static ImageType getImageType(String imageType) {
+         for (ImageType tType : ImageType.values()) {
+            if (tType.type.equals(imageType.toUpperCase())) {
+              return tType;
+            }
+         }
+         
+         throw new IllegalArgumentException("unsupported image type " + imageType);
+      }
+   }
+   
+   public enum ImageOperation {
+      SCALE, CROP_LEFT, CROP_CENTER, CROP_RIGHT;
+   }
+   
    /**
     * Crop an image
     * <p>
@@ -40,15 +42,13 @@ public interface ImageConverter {
     * @param origImage original File
     * @param newImage File to save transformed image to
     * @param newWidth the width the new image should have
-    * @param cropSide 
-    *             "left" for crop from left, "center" for crop from left and right, "right" for crop
-    *             from right
+    * @param imageOperation kind of convertion will done to the image
     * @return ImageInfo
     * @throws TimeoutException
     * @throws FileNotFoundException
     * @throws IOException
     */
-   public ImageInfo crop(File origImage, File newImage, int newWidth, String cropSide) 
+   public ImageInfo convert(File origImage, File newImage, int newWidth, ImageOperation imageOperation) 
       throws TimeoutException, FileNotFoundException, IOException;
    
    /**
