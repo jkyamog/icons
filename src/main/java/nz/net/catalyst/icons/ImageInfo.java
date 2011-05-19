@@ -53,7 +53,8 @@ public class ImageInfo implements Serializable {
       return lastModified;
    }
 
-   public String toStringForDebug() {
+   @Override
+   public String toString() {
       return new StringBuilder()
          .append(path).append(" ")
          .append(type).append(" ")
