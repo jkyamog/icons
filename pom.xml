@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>icons</name>
-  <url>http://maven.apache.org</url>
+  <url>http://github.com/jkyamog/icons</url>
 
   <parent>
     <groupId>org.sonatype.oss</groupId>
