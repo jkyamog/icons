@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 public class ImageMagickImageConverterImpl implements ImageConverter {
    private final Logger logger = LoggerFactory.getLogger(this.getClass());
    
-   private final ProcessExecutor procExec;
+   private final ProcExec procExec;
    
-   public ImageMagickImageConverterImpl(ProcessExecutor processExecutor) {
+   public ImageMagickImageConverterImpl(ProcExec processExecutor) {
       this.procExec = processExecutor;
    }
 

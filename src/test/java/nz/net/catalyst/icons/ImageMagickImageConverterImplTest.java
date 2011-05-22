@@ -17,12 +17,12 @@ import org.junit.Test;
 public class ImageMagickImageConverterImplTest {
 
    ImageMagickImageConverterImpl icon;
-   ProcessExecutor procExec;
+   ExecutorServiceProcExecImpl procExec;
    File testDir = new File("target/test-images");
    
    @Before
    public void setup() {
-      procExec = new ProcessExecutor();
+      procExec = new ExecutorServiceProcExecImpl();
       icon = new ImageMagickImageConverterImpl(procExec);
       
       testDir.mkdir();

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author jun yamog
  *
  */
-public class ProcessExecutor {
+public class ExecutorServiceProcExecImpl implements ProcExec {
    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
    private final ExecutorService threadExecutor;
@@ -35,7 +35,7 @@ public class ProcessExecutor {
     */
    public static final int DEFAULT_PROCESS_MAX = 20;
 
-   public ProcessExecutor() {
+   public ExecutorServiceProcExecImpl() {
       threadExecutor = Executors.newFixedThreadPool(DEFAULT_PROCESS_MAX);
    }
    
@@ -43,7 +43,7 @@ public class ProcessExecutor {
     * you can override the maximum number of processes if needed for tuning
     * @param processMax
     */
-   public ProcessExecutor(int processMax) {
+   public ExecutorServiceProcExecImpl(int processMax) {
       threadExecutor = Executors.newFixedThreadPool(processMax);
    }
    
@@ -61,6 +61,7 @@ public class ProcessExecutor {
     * @throws TimeoutException
     * @throws IOException
     */
+   @Override
    public ExecResult execute(List<String> commandList)
          throws TimeoutException, ExecutionException {
 
