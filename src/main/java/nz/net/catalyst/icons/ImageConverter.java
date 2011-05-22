@@ -3,6 +3,7 @@ package nz.net.catalyst.icons;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -49,7 +50,7 @@ public interface ImageConverter {
     * @throws IOException
     */
    public ImageInfo convert(File origImage, File newImage, int newWidth, ImageOperation imageOperation) 
-      throws TimeoutException, FileNotFoundException, IOException;
+      throws TimeoutException, ExecutionException, FileNotFoundException, IOException;
    
    /**
     * This method will retrieve the information needed to populate a ImageInfo object:
@@ -69,5 +70,5 @@ public interface ImageConverter {
     * @see ImageInfo
     */
    public ImageInfo getImageInfo(File imageFile) 
-      throws TimeoutException, FileNotFoundException, IOException;
+      throws TimeoutException, ExecutionException, FileNotFoundException, IOException;
 }

@@ -17,18 +17,20 @@ import org.junit.Test;
 public class ImageMagickImageConverterImplTest {
 
    ImageMagickImageConverterImpl icon;
+   ProcessExecutor procExec;
    File testDir = new File("target/test-images");
    
    @Before
    public void setup() {
-      icon = new ImageMagickImageConverterImpl();
+      procExec = new ProcessExecutor();
+      icon = new ImageMagickImageConverterImpl(procExec);
       
       testDir.mkdir();
    }
    
    @After
    public void cleanup() throws IOException {
-      icon.cleanup();
+      procExec.cleanup();
 
       FileUtils.deleteDirectory(testDir);
 }

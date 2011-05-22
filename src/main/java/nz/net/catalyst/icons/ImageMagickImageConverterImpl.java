@@ -3,17 +3,12 @@ package nz.net.catalyst.icons;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,55 +22,26 @@ import org.slf4j.LoggerFactory;
 public class ImageMagickImageConverterImpl implements ImageConverter {
    private final Logger logger = LoggerFactory.getLogger(this.getClass());
    
-   private final ExecutorService threadExecutor;
+   private final ProcessExecutor procExec;
    
-   /**
-    * Time in seconds before the executed command gets interrupted
-    */
-   public static final long TIMEOUT = 20;
-   
-   /**
-    * max number of image magick processes - this is set to low number for 2 big reasons:
-    * - less use concurrent process, less OS resources (file handle, etc.)
-    * - block more concurrent request the better the cache is utilized, as blocked
-    * threads will get the cached copy
-    */
-   public static final int DEFAULT_PROCESS_MAX = 20;
-   
-   
-   
-   public ImageMagickImageConverterImpl() {
-      threadExecutor = Executors.newFixedThreadPool(DEFAULT_PROCESS_MAX);
-   }
-   
-   /**
-    * you can override the maximum number of processes if needed for tuning
-    * @param processMax
-    */
-   public ImageMagickImageConverterImpl(int processMax) {
-      threadExecutor = Executors.newFixedThreadPool(processMax);
-   }
-   
-   public void cleanup() {
-      threadExecutor.shutdown();
+   public ImageMagickImageConverterImpl(ProcessExecutor processExecutor) {
+      this.procExec = processExecutor;
    }
 
-   /* (non-Javadoc)
-    * @see nz.co.telecom.mobile.wap.mdl.api.ImageConverter#getImageInfo(java.io.File)
-    */
+   
    public ImageInfo getImageInfo(File imageFile) 
-         throws TimeoutException, FileNotFoundException, IOException {
+         throws TimeoutException, ExecutionException, FileNotFoundException, IOException {
 
       logger.info("identifying image " + imageFile.getAbsolutePath());
-      ArrayList<String> commandList = new ArrayList<String>();
+      List<String> commandList = new ArrayList<String>();
       commandList.add("identify");
       commandList.add(imageFile.getAbsolutePath());
 
       ImageInfo imageInfo;
-      ExecResult execResult = execute(commandList);
-      if (execResult.getExitStatus() == 0) {
-         String[] identifyResults = StringUtils.split(execResult.getStdOutput(), " ");
-         logger.debug("identify output " + execResult.getStdOutput());
+      ExecResult execResult = procExec.execute(commandList);
+      if ((execResult != null) && (execResult.getExitStatus() == 0)) {
+         String[] identifyResults = StringUtils.split(execResult.getOutput(), " ");
+         logger.debug("identify output " + execResult.getOutput());
          if (identifyResults.length > 3) {
             String[] dimensions = StringUtils.split(identifyResults[2], "x");
             imageInfo = new ImageInfo(
@@ -97,7 +63,7 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
    }
    
    public ImageInfo convert(File origImage, File newImage, int newWidth, ImageOperation imageOperation) 
-      throws TimeoutException, FileNotFoundException, IOException {
+      throws TimeoutException, ExecutionException, FileNotFoundException, IOException {
       
       if (imageOperation.equals(ImageOperation.SCALE))
          return scale(origImage, newImage, newWidth);
@@ -108,13 +74,13 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
 
 
    private ImageInfo scale(File origImage, File newImage, int newWidth)
-         throws TimeoutException, FileNotFoundException, IOException, IllegalArgumentException {
+         throws TimeoutException, ExecutionException, FileNotFoundException, IOException {
 
       ImageInfo origImageInfo = getImageInfo(origImage);
       checkArguments(origImage, newImage, newWidth);
       createDirIfNeeded(newImage);
       
-      ArrayList<String> commandList = new ArrayList<String>();
+      List<String> commandList = new ArrayList<String>();
       commandList.add("convert");
 
       // svg scales better with density param
@@ -137,8 +103,8 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
       commandList.add(newImage.getAbsolutePath());
 
       ImageInfo newImageInfo;
-      ExecResult execResult = execute(commandList);
-      if (execResult.getExitStatus() == 0) {
+      ExecResult execResult = procExec.execute(commandList);
+      if ((execResult != null) && (execResult.getExitStatus() == 0)) {
          // get the image info from the actual scaled image
          // this is to make sure that the dimensions matches
          // what is actually in the file system
@@ -152,7 +118,7 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
 
 
    private ImageInfo crop(File origImage, File newImage, int newWidth, ImageOperation imageOperation) 
-   		throws TimeoutException, FileNotFoundException, IOException, IllegalArgumentException {
+   		throws TimeoutException, ExecutionException, FileNotFoundException, IOException {
 
       ImageInfo origImageInfo = getImageInfo(origImage);
       checkArguments(origImage, newImage, newWidth);
@@ -160,7 +126,7 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
       
       int crop = getCrop(origImageInfo, newWidth);
       
-      ArrayList<String> commandList = new ArrayList<String>();
+      List<String> commandList = new ArrayList<String>();
       
       commandList.add("convert");
       commandList.add(origImage.getAbsolutePath());
@@ -181,8 +147,8 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
       commandList.add(newImage.getAbsolutePath());
 
       ImageInfo newImageInfo;
-      ExecResult execResult = execute(commandList);
-      if (execResult.getExitStatus() == 0) {
+      ExecResult execResult = procExec.execute(commandList);
+      if ((execResult != null) && (execResult.getExitStatus() == 0)) {
          // get the image info from the actual cropped image
          // this is to make sure that the dimensions matches
          // what is actually in the file system
@@ -270,141 +236,5 @@ public class ImageMagickImageConverterImpl implements ImageConverter {
 
 
 
-   /**
-    * execute the commandList using a thread pool which is used as a process pool.
-    * threads are blocked for executing more processes there is no more slots in the pool
-    * note: anything below this gets a bit hairy and don't touch the code unless
-    * you understand about concurrency.
-    * 
-    * @param commandList the ArrayList with commands to execute
-    * @return ExecResult
-    * @throws TimeoutException
-    * @throws IOException
-    */
-   private ExecResult execute(ArrayList<String> commandList)
-         throws TimeoutException, IOException {
-
-      CommandTask commandTask = new CommandTask(commandList);
-      Future<?> future = threadExecutor.submit(commandTask);
-      try {
-         future.get(TIMEOUT, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-         logger.error("Process got interrupted.", e);
-         // Stop the process from running
-         commandTask.halt();
-         throw new TimeoutException("Process got interrupted.");
-      } catch (ExecutionException e) {
-         logger.error("Problem in running process.", e);
-         // Stop the process from running
-         commandTask.halt();
-         throw new IOException(e);
-      }
-      
-      return commandTask.getExecResult();
-      
-   }
-
-   /**
-    * A runnable that runs a Process through a ProcessBuilder.  This holds 
-    * ExecResults which is populated after run
-    *
-    */
-   private class CommandTask implements Runnable {
-      
-      ArrayList<String> commandList;
-      ExecResult execResult = new ExecResult();
-      Process proc;
-
-      public CommandTask(ArrayList<String> commandList) {
-         this.commandList = commandList;
-      }
-      
-      
-      public void run() {
-
-         String command = StringUtils.join(commandList.iterator(), " ");
-         logger.debug("command = " + command);
-   
-         try {
-            ProcessBuilder procBuilder= new ProcessBuilder(commandList);
-            proc = procBuilder.start();
-
-            int exitStatus = proc.waitFor(); // blocking we want to wait for the process to finish
-            execResult.setExitStatus(exitStatus);
-            execResult.setStdOutput(proc.getInputStream());
-            execResult.setStdError(proc.getErrorStream());
-         } catch (InterruptedException e) {
-            logger.error("Process got interrupted.", e);
-            // Stop the process from running
-            halt();
-         } catch (IOException e) {
-            logger.error("error excecuting process", e);
-         }
-
-
-         if (execResult.getExitStatus() != 0) {
-            logger.warn("Error executing command: " + command + " STDERR follows");
-            logger.warn(execResult.getStdError());
-         }
-         
-      }
-      
-      public ExecResult getExecResult() {
-         return execResult;
-      }
-      
-      /**
-       * use this to kill the process if needed during an exception
-       */
-      public void halt() {
-         proc.destroy();
-      }
-      
-   }
-   
-   /**
-    * Class to hold the result of an executed process capturing 
-    * the stdout and stderr output as well as the exit status.
-    */
-   private class ExecResult {
-      private int exitStatus = 1;
-
-      private String stdOutput = "";
-
-      private String stdError = "";
-
-      public void setExitStatus(int exitStatus) {
-         this.exitStatus = exitStatus;
-      }
-
-      public int getExitStatus() {
-         return exitStatus;
-      }
-
-      public void setStdOutput(InputStream stdOutput) {
-         try {
-            this.stdOutput = IOUtils.toString(stdOutput);
-         } catch (IOException e) {
-            logger.error("error processing stdOutput", e);
-         }
-      }
-
-      public String getStdOutput() {
-         return stdOutput;
-      }
-
-      public void setStdError(InputStream stdError) {
-         try {
-            this.stdError = IOUtils.toString(stdError);
-         } catch (IOException e) {
-            logger.error("error processing stderr", e);
-         }
-      }
-
-      public String getStdError() {
-         return stdError;
-      }
-
-   }
 
 }
