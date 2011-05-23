@@ -1,10 +1,12 @@
 package nz.net.catalyst.icons;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 
 import nz.net.catalyst.icons.ImageConverter.ImageOperation;
@@ -14,15 +16,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ImageMagickImageConverterImplTest {
+public class AkkaProcExecTest {
 
    ImageMagickImageConverterImpl icon;
-   ExecutorServiceProcExecImpl procExec;
+   AkkaProcExec procExec;
    File testDir = new File("target/test-images");
    
    @Before
    public void setup() {
-      procExec = new ExecutorServiceProcExecImpl();
+      procExec = new AkkaProcExec();
       icon = new ImageMagickImageConverterImpl(procExec);
       
       testDir.mkdir();
@@ -30,7 +32,6 @@ public class ImageMagickImageConverterImplTest {
    
    @After
    public void cleanup() throws IOException {
-      procExec.cleanup();
 
       FileUtils.deleteDirectory(testDir);
 }
@@ -50,7 +51,7 @@ public class ImageMagickImageConverterImplTest {
          System.out.println("BufferedImage = " + bi);
          
          assertEquals(bi.getWidth(), ii.getWidth());
-         
+
          icon.convert(origImage, newImage, 100, ImageOperation.SCALE);
 
          ii = icon.getImageInfo(newImage);
@@ -64,5 +65,5 @@ public class ImageMagickImageConverterImplTest {
          fail("no exceptions expected");
       }
    }
-
+   
 }

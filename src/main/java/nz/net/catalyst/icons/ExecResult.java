@@ -28,5 +28,13 @@ public class ExecResult {
    public String getError() {
       return error;
    }
+   
+   @Override
+   public String toString() {
+      return (new StringBuilder())
+         .append(exitStatus).append(" ")
+         .append(output).append(" ")
+         .append(error).toString();
+   }
 
 }
