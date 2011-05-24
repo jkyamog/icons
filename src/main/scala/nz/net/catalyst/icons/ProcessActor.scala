@@ -36,35 +36,6 @@ class ProcessActor extends Actor {
         }
       }
 
-/*      
-      try {
-        
-         val procBuilder = new ProcessBuilder(command);
-         
-         val proc = procBuilder.start;
-         val exitStatus = proc.waitFor;
-         
-         val error = fromInputStream(proc.getErrorStream()).mkString
-         val output = fromInputStream(proc.getInputStream()).mkString
-         
-         EventHandler.debug(this, "error = " + error);
-         EventHandler.debug(this, "output = " + output);
-         
-         val result = new ExecResult(exitStatus, output, error)
-         
-         self.channel ! result
-      } catch {
-        case e: InterruptedException => {
-          EventHandler.error(e, this, "Process got interrupted.")
-          self.channel ! None
-        }
-        case e: IOException => {
-          EventHandler.error(e, this, "Error getting process output and error")
-          self.channel ! None
-        }
-      }
-*/      
-      
     }
     case _ => EventHandler.warning(this, "received unknown message")
   }
