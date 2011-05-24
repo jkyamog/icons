@@ -2,11 +2,13 @@ package nz.net.catalyst.icons
 
 import akka.actor._
 import collection.JavaConversions._
+import org.junit.Test
 
 
-object ProcessActorTest {
+class ProcessActorTest {
   
-   def main(args: Array[String]) {
+  @Test
+  def testProcessActor {
 
      val command = Seq("ps", "ax")
 
@@ -19,5 +21,5 @@ object ProcessActorTest {
      
      //procActor.stop
      
-   }
+  }
 }
