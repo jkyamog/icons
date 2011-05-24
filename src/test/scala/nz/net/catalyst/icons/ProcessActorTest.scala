@@ -8,13 +8,12 @@ object ProcessActorTest {
   
    def main(args: Array[String]) {
 
-     val command = List("ps", "ax")
-     val commandList: java.util.List[String] = command
-     
+     val command = Seq("ps", "ax")
+
      val procActor = Actor.actorOf[ProcessActor]
      
      procActor.start
-     val test = procActor !! commandList
+     val test = procActor !! command
      
      println(test)
      
