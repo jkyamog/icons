@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,11 +69,15 @@ public class ExecutorServiceProcExecImpl implements ProcExec {
       CommandTask commandTask = new CommandTask(commandList);
       Future<ExecResult> future = threadExecutor.submit(commandTask);
       try {
-         return future.get(TIMEOUT, TimeUnit.SECONDS);
+         ExecResult execResult = future.get(TIMEOUT, TimeUnit.SECONDS);
+         
+         if (execResult.getExitStatus() != 0) {
+            logger.warn("Error executing command: " + StringUtils.join(commandList, " ") + " STDERR follows");
+            logger.warn(execResult.getError());
+         }
+         return execResult;
       } catch (InterruptedException e) {
          logger.error("Process got interrupted.", e);
-         // Stop the process from running
-         commandTask.halt();
          throw new TimeoutException("Process got interrupted.");
       } catch (ExecutionException e) {
          // Stop the process from running
