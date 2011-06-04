@@ -12,7 +12,7 @@ import java.util.concurrent.TimeoutException;
 public interface ImageConverter {
    
    public enum ImageType {
-      SVG("SVG"), PNG("PNG"), JPEG("JPEG");
+      SVG("SVG"), PNG("PNG"), JPEG("JPEG"), GIF("GIF");
       
       private String type;
       
