@@ -25,19 +25,8 @@ public class ExecutorServiceProcExecImpl implements ProcExec {
 
    private final ExecutorService threadExecutor;
 
-   /**
-    * Time in seconds before the executed command gets interrupted
-    */
-   public static final long TIMEOUT = 20;
-   
-   /**
-    * max number of processes to limit the use of concurrent process and
-    * lessen the OS resources (file handle, etc.)
-    */
-   public static final int DEFAULT_PROCESS_MAX = 20;
-
    public ExecutorServiceProcExecImpl() {
-      threadExecutor = Executors.newFixedThreadPool(DEFAULT_PROCESS_MAX);
+      this(DEFAULT_PROCESS_MAX);
    }
    
    /**
@@ -60,7 +49,6 @@ public class ExecutorServiceProcExecImpl implements ProcExec {
     * @param commandList the ArrayList with commands to execute
     * @return ExecResult
     * @throws TimeoutException
-    * @throws IOException
     */
    @Override
    public ExecResult execute(List<String> commandList)
@@ -69,7 +57,7 @@ public class ExecutorServiceProcExecImpl implements ProcExec {
       CommandTask commandTask = new CommandTask(commandList);
       Future<ExecResult> future = threadExecutor.submit(commandTask);
       try {
-         ExecResult execResult = future.get(TIMEOUT, TimeUnit.SECONDS);
+         ExecResult execResult = future.get(DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
          
          if (execResult.getExitStatus() != 0) {
             logger.warn("Error executing command: " + StringUtils.join(commandList, " ") + " STDERR follows");
