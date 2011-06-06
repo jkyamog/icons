@@ -7,9 +7,6 @@ import scala.io.Source.fromInputStream
 import scala.sys.process.ProcessIO
 import scala.sys.process.Process
 
-import java.io.InputStreamReader
-import java.io.IOException
-
 class ProcessActor extends Actor {
   
   def receive = {
