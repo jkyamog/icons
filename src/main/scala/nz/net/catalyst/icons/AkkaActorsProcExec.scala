@@ -36,7 +36,7 @@ class AkkaActorsProcExec(noOfActors: Int) extends ProcExec {
       case Some(execResult: ExecResult) => {
         if (execResult.getExitStatus != 0) {
           EventHandler.warning(this, "Error executing command: " + commandSeq.mkString(" ") + " STDERR follows")
-          EventHandler.warning(this, execResult.getError())
+          EventHandler.warning(this, execResult.getError)
         }
         EventHandler.debug(this, "execResult = " + execResult)
         return execResult

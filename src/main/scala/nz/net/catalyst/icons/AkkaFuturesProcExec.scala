@@ -29,7 +29,7 @@ class AkkaFuturesProcExec extends ProcExec {
             val execResult = f.get
             if (execResult.getExitStatus != 0) {
               EventHandler.warning(this, "Error executing command: " + commandSeq.mkString(" ") + " STDERR follows")
-              EventHandler.warning(this, execResult.getError())
+              EventHandler.warning(this, execResult.getError)
             }
         } else {
           throw new TimeoutException("No results for command: " + commandSeq.mkString(" "))
