@@ -105,7 +105,7 @@
     <repository>
       <id>Akka</id>
       <name>Akka Maven2 Repository</name>
-      <url>http://akka.io/repository/ </url>
+      <url>http://akka.io/repository/</url>
     </repository>
     <repository>
       <id>scala-tools.org</id>
