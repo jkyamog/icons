@@ -1,6 +1,5 @@
 package nz.net.catalyst.icons;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
