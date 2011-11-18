@@ -4,7 +4,7 @@
 
   <groupId>nz.net.catalyst</groupId>
   <artifactId>icons-opt</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.4-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>icons-opt</name>
@@ -37,14 +37,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <sl4j.version>1.6.0</sl4j.version>
-    <akka.version>1.1.2</akka.version>
+    <akka.version>1.2</akka.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>nz.net.catalyst</groupId>
       <artifactId>icons-core</artifactId>
-      <version>0.0.3-SNAPSHOT</version>
+      <version>0.0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -61,7 +61,7 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>2.9.0-1</version>
+      <version>2.9.1</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -108,6 +108,30 @@
 		  </execution>
 		</executions>
 	  </plugin>
+      <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-eclipse-plugin</artifactId>
+		<configuration>
+			<downloadSources>true</downloadSources>
+			<downloadJavadocs>true</downloadJavadocs>
+			<excludes>
+				<exclude>org.scala-lang:scala-library</exclude>
+			</excludes>
+			<classpathContainers>
+				<classpathContainer>org.scala-ide.sdt.launching.SCALA_CONTAINER</classpathContainer>
+			</classpathContainers>
+			<projectnatures>
+				<java.lang.String>org.scala-ide.sdt.core.scalanature</java.lang.String>
+				<java.lang.String>org.eclipse.jdt.core.javanature</java.lang.String>
+			</projectnatures>
+			<buildcommands>
+				<java.lang.String>org.scala-ide.sdt.core.scalabuilder</java.lang.String>
+			</buildcommands>
+			<sourceIncludes>
+            	<sourceInclude>**/*</sourceInclude>
+          	</sourceIncludes>
+		  </configuration>
+		</plugin>
     </plugins>
   </build>
 
