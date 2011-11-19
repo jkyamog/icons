@@ -23,18 +23,15 @@ class AkkaFuturesProcExec extends ProcExec {
       val exitStatus = proc.waitFor
 
       new ExecResult(exitStatus, output, error)
-    }, ProcExec.DEFAULT_TIMEOUT) onComplete {
-      f => {
-        if (f.result.isDefined) {
-            val execResult = f.get
-            if (execResult.getExitStatus != 0) {
-              EventHandler.warning(this, "Error executing command: " + commandSeq.mkString(" ") + " STDERR follows")
-              EventHandler.warning(this, execResult.getError)
-            }
-        } else {
-          throw new TimeoutException("No results for command: " + commandSeq.mkString(" "))
+    }, ProcExec.DEFAULT_TIMEOUT) onComplete { f => 
+        val execResult = f.get
+        if (execResult.getExitStatus != 0) {
+          EventHandler.warning(this, "Error executing command: " + commandSeq.mkString(" ") + " STDERR follows")
+          EventHandler.warning(this, execResult.getError)
         }
-      }
+    } onTimeout { _ =>
+        if (proc != null) proc.destroy
+        throw new TimeoutException("No results for command: " + commandSeq.mkString(" "))
     } failure {
       case e: Exception => {
         if (proc != null) proc.destroy
@@ -42,14 +39,7 @@ class AkkaFuturesProcExec extends ProcExec {
       }
     }
 
-    try {
-      return future.get
-    } catch {
-      case e: FutureTimeoutException => { // this can be removed on next version of akka 1.2 and use onTimeout callback
-        if (proc != null) proc.destroy
-        throw new TimeoutException(e.getMessage)
-      }
-    }
+    return future.get
   }
 
 }
